@@ -1,0 +1,73 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">
+    <title>运输调度</title>
+    <link rel="stylesheet" href="https://a.amap.com/jsapi_demos/static/demo-center/css/demo-center.css"/>
+    <style>
+        html, body, #container {
+            height: 100%;
+            width: 100%;
+        }
+
+        .amap-icon img {
+            width: 25px;
+            height: 34px;
+        }
+    </style>
+</head>
+<body>
+<div id="container"></div>
+<script type="text/javascript" src="https://webapi.amap.com/maps?v=2.0&key=4223bc83086cf26245bf3fde6a660fa4"></script>
+<script type="text/javascript" th:inline="javascript">
+    // 创建地图实例
+    var map = new AMap.Map("container", {
+        zoom: 13,
+        center: [104.065861, 30.657401],
+        resizeEnable: true
+    });
+
+    function addPoint(name, longitude, latitude) {
+        var marker = new AMap.Marker({
+            position: new AMap.LngLat(longitude, latitude),
+            title: name,
+            icon: 'viaPoint.png',
+            offset: new AMap.Pixel(-13, -30)
+        });
+        map.add(marker);
+    }
+
+    // 使用Thymeleaf迭代GasStation对象列表，并添加到地图上
+    /*<![CDATA[*/
+    /*[# th:each="station : ${GasStationList}"]*/
+    addPoint([[${station.getName}]], [[${station.getLongitude}]], [[${station.getLatitude}]]);
+    /*[/]*/
+    /*]]>*/
+
+    // 添加生成车辆的函数
+    function addVehiclePoint(longitude, latitude) {
+        //获取车辆的随机位置
+        var vehiclePoint = new AMap.LngLat(longitude, latitude);
+        var vanIcon = new AMap.Icon({
+            image: 'van.png',
+            offset: new AMap.Pixel(-13, -30)
+        });
+        // 在地图上标记车辆点
+        var vanMarker = new AMap.Marker({
+            position: vehiclePoint,
+            icon: vanIcon,
+            map: map
+        });
+    }
+
+    // 使用Thymeleaf迭代Vehicle对象列表，并添加到地图上
+    /*<![CDATA[*/
+    /*[# th:each="vehicle : ${VehicleList}"]*/
+    addVehiclePoint([[${vehicle.getLongitude}]], [[${vehicle.getLatitude}]]);
+    /*[/]*/
+    /*]]>*/
+</script>
+</body>
+</html>

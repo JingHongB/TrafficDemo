@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>测试</title>
+    <script src="https://unpkg.com/axios@1.1.2/dist/axios.min.js"></script>
+</head>
+<body>
+<div th:each="GasStation : ${GasStationList}">
+    <label>
+        <input type="text" id=“name” th:value="${GasStation.getName()}"/>
+        <input type="text" name=“longitude” th:value="${GasStation.getLongitude()}"/>
+        <input type="text" name=“latitude” th:value="${GasStation.getLatitude()}"/>
+    </label>
+</div>
+
+</body>
+<script type="text/javascript" th:inline="javascript">
+    /*<![CDATA[*/
+    /*[# th:each="route : ${RouteList}"]*/
+    alert([[${route.getId}]])
+    alert([[${route.getStartLongitude}]])
+    /*[/]*/
+    /*]]>*/
+</script>
+</html>

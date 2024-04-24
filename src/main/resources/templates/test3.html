@@ -1,0 +1,180 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">
+  <title>位置经纬度 + 驾车规划路线</title>
+  <style>
+    html,
+    body,
+    #container {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    #panel {
+      position: fixed;
+      background-color: white;
+      max-height: 90%;
+      overflow-y: auto;
+      top: 10px;
+      right: 10px;
+      width: 280px;
+    }
+
+    #panel .amap-call {
+      background-color: #009cf9;
+      border-top-left-radius: 4px;
+      border-top-right-radius: 4px;
+    }
+
+    #panel .amap-lib-driving {
+      border-bottom-left-radius: 4px;
+      border-bottom-right-radius: 4px;
+      overflow: hidden;
+    }
+
+    #button-container {
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      z-index: 1000;
+    }
+  </style>
+  <!-- 加载高德地图的安全配置 -->
+  <script>
+    window._AMapSecurityConfig = {
+      securityJsCode: 'ba118090106e53c69803ed7339da9ccb',
+    }
+  </script>
+  <!-- 加载高德地图的样式 -->
+  <link rel="stylesheet" href="https://a.amap.com/jsapi_demos/static/demo-center/css/demo-center.css" />
+</head>
+
+<body>
+  <!-- 按钮容器 -->
+  <div id="button-container">
+    <button id="execute-btn">执行路径规划</button>
+  </div>
+  <!-- 地图容器 -->
+  <div id="container"></div>
+  <!-- 信息面板 -->
+  <div id="panel"></div>
+  <!-- 加载高德地图的JavaScript API -->
+  <script type="text/javascript" src="https://webapi.amap.com/maps?v=2.0&key=4223bc83086cf26245bf3fde6a660fa4&plugin=AMap.Driving"></script>
+
+  <script>
+    // 创建地图实例
+    var map = new AMap.Map("container", {
+      resizeEnable: true,
+      center: [104.065861, 30.657401], // 地图中心点的经纬度
+      zoom: 13 // 地图缩放级别
+    });
+
+    // 定义起始点和终点
+    var address = [
+      {
+        "startPoint": [104.065861, 30.654179],
+        "endPoint": [104.061713,30.658881]
+      },
+      {
+        "startPoint": [104.039306, 30.664338],
+        "endPoint": [104.059061,30.66097]
+      }
+    ];
+
+    // 获取按钮元素
+    var executeBtn = document.getElementById("execute-btn");
+
+    // 点击按钮执行路径规划
+    executeBtn.addEventListener("click", function() {
+      address.forEach(function(plan) {
+        Path_Planning(plan.startPoint, plan.endPoint);
+      });
+    });
+
+    function Path_Planning(startPoint, endPoint) {
+      // 创建驾驶规划实例
+      var driving = new AMap.Driving({
+        map: map, // 指定地图对象
+        policy: AMap.DrivingPolicy.REAL_TRAFFIC, // 设置驾车策略，此处为考虑实时交通情况
+        hideMarkers: true, // 隐藏起点和终点标记
+        autoFitView: false // 禁止地图自动调整视野
+      });
+
+      // 创建起点标记
+      var startPointMarker = new AMap.Marker({
+        map: map, // 指定地图对象
+        position: startPoint,
+        icon: new AMap.Icon({
+          size: new AMap.Size(40, 50), // 图标尺寸
+          image: 'van.png', // Icon的图像
+          imageOffset: new AMap.Pixel(0, -5), // 图像相对于可视区域的偏移量
+          imageSize: new AMap.Size(30, 40) // 根据所设置的大小拉伸或压缩图片
+        }) // 设置标记位置为起始点
+      });
+
+      // 初始化路径移动
+      startMoving();
+
+      // 初始化路径移动
+      function startMoving() {
+        var currentIndex = 0; // 当前路径点索引
+        var pathPoints = []; // 路径点集合
+        var timer; // 定时器
+
+        // 发起起点到终点的路径规划请求
+        driving.search(startPoint, endPoint, function(status, result) {
+          if (status === 'complete' && result.routes && result.routes.length) {
+            // 提取路径中的所有经纬度点
+            pathPoints = result.routes[0].steps.reduce((acc, step) => acc.concat(step.path), []);
+            // 移动标记沿着路径
+            moveMarker();
+          } else {
+            console.log("路径规划失败：" + result.message);
+          }
+        });
+
+        // 每隔一段时间移动标记到下一个路径点
+        function moveMarker() {
+          timer = setInterval(function() {
+            if (currentIndex >= pathPoints.length - 1) { // 到达路径终点时停止移动
+              clearInterval(timer);
+              driving.clear();
+              console.log("到达路径终点，移动停止。");
+              return;
+            }
+            var newPosition = pathPoints[currentIndex];
+            startPointMarker.setPosition(newPosition); // 设置标记位置为当前路径点
+            currentIndex++; // 更新当前路径点索引
+            var markerPosition = startPointMarker.getPosition();
+            updateRoute(markerPosition); // 检查是否需要重新规划路径
+          }, 500); // 设置每次移动的时间间隔，单位为毫秒
+        }
+      }
+
+      // 检查是否需要重新规划路径
+      function updateRoute(newPosition) {
+        // 清除当前路径规划
+        driving.clear();
+
+        // 重新发起路径规划请求，以当前标记位置为起点，之前的终点为终点
+        driving.search(newPosition, endPoint, function(status, result) {
+          if (status === 'complete' && result.routes && result.routes.length) {
+            var newPathPoints = result.routes[0].steps.reduce((acc, step) => acc.concat(step.path), []);
+            // 更新路径点集合
+            pathPoints = newPathPoints;
+          } else {
+            console.log("重新规划路径失败：" + result.message);
+          }
+        });
+      }
+    }
+  </script>
+</body>
+
+</html>
