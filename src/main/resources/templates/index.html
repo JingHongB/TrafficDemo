@@ -41,8 +41,8 @@
 
     // 使用Thymeleaf迭代GasStation对象列表，并添加到地图上
     /*<![CDATA[*/
-    /*[# th:each="station : ${GasStationList}"]*/
-    addPoint([[${station.getName}]], [[${station.getLongitude}]], [[${station.getLatitude}]]);
+    /*[# th:each="winery : ${WineryList}"]*/
+    addPoint([[${winery.getName}]], [[${winery.getLongitude}]], [[${winery.getLatitude}]]);
     /*[/]*/
     /*]]>*/
 

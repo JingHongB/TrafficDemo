@@ -6,14 +6,14 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
 @Data
-@TableName("GasStation")
-public class GasStation {
+@TableName("winery")
+public class Winery {
     @TableId
     Integer id;
     @TableField("name")
     String name;
     @TableField("longitude")
-    double longitude;
+    Double longitude;
     @TableField("latitude")
-    double latitude;
+    Double latitude;
 }

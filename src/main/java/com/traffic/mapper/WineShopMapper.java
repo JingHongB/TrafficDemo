@@ -1,9 +1,9 @@
 package com.traffic.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.traffic.entity.GasStation;
+import com.traffic.entity.WineShop;
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
-public interface PointMapper extends BaseMapper<GasStation> {
+public interface WineShopMapper extends BaseMapper<WineShop> {
 }
